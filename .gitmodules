@@ -1,0 +1,6 @@
+[submodule "vendor/github.com/yawning/bulb"]
+	path = vendor/github.com/yawning/bulb
+	url = https://github.com/yawning/bulb
+[submodule "vendor/golang.org/x/net"]
+	path = vendor/golang.org/x/net
+	url = https://go.googlesource.com/net
