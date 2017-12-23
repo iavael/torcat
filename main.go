@@ -21,7 +21,7 @@ var (
 
 func init() {
 	flag.StringVar(&control, "control", "localhost:9051", "Control port")
-	flag.UintVar(&listen, "l", 0, "Listen")
+	flag.UintVar(&listen, "l", 0, "Listen port")
 
 	flag.Parse()
 }
@@ -37,7 +37,9 @@ func main() {
 		log.Fatalf("Authentication failed: %s", err)
 	}
 
-	if listen != 0 {
+	if listen > 65535 {
+		log.Fatalf("Listen port %d is greater than 65535", listen)
+	} else if listen != 0 {
 		if pk, err := rsa.GenerateKey(rand.Reader, 1024); err != nil {
 			log.Fatalf("Failed to generate RSA key")
 		} else if id, err := pkcs1.OnionAddr(&pk.PublicKey); err != nil {
