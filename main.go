@@ -64,13 +64,8 @@ func main() {
 					log.Fatalf("Failed to accept connection: %s", err)
 				} else {
 					defer conn.Close()
-
-					select {
-					case err := <-runIO(conn):
-						if err != nil {
-							log.Fatalf("Failed conversation: %s", err)
-						}
-						break
+					if err := runIO(conn); err != nil {
+						log.Fatalf("Failed conversation: %s", err)
 					}
 				}
 			}
@@ -93,19 +88,14 @@ func main() {
 			log.Fatalf("Connection to %s failed", err)
 		} else {
 			defer conn.Close()
-
-			select {
-			case err := <-runIO(conn):
-				if err != nil {
-					log.Fatalf("Failed conversation: %s", err)
-				}
-				break
+			if err := runIO(conn); err != nil {
+				log.Fatalf("Failed conversation: %s", err)
 			}
 		}
 	}
 }
 
-func runIO(conn io.ReadWriter) <-chan error {
+func runIO(conn io.ReadWriter) error {
 	errchan := make(chan error)
 	go func() {
 		if _, err := io.Copy(os.Stdout, conn); err != nil {
@@ -121,5 +111,9 @@ func runIO(conn io.ReadWriter) <-chan error {
 			errchan <- nil
 		}
 	}()
-	return errchan
+
+	select {
+	case err := <-errchan:
+		return err
+	}
 }
