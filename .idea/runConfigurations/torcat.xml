@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="torcat" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="torcat" />
+    <working_directory value="$PROJECT_DIR$/" />
+    <go_parameters value="-i" />
+    <kind value="PACKAGE" />
+    <filePath value="$PROJECT_DIR$/main.go" />
+    <package value="github.com/iavael/torcat" />
+    <directory value="$PROJECT_DIR$/" />
+    <output_directory value="$PROJECT_DIR$/" />
+    <option name="run" value="false" />
+    <method />
+  </configuration>
+</component>
