@@ -107,16 +107,15 @@ func main() {
 	}
 }
 
+func ioCopy(errchan chan error, w io.Writer, r io.Reader) {
+	_, err := io.Copy(w, r)
+	errchan <- err
+}
+
 func runIO(conn io.ReadWriter) error {
 	errchan := make(chan error)
-	go func() {
-		_, err := io.Copy(os.Stdout, conn)
-		errchan <- err
-	}()
-	go func() {
-		_, err := io.Copy(conn, os.Stdin)
-		errchan <- err
-	}()
+	go ioCopy(errchan, os.Stdout, conn)
+	go ioCopy(errchan, conn, os.Stdin)
 
 	select {
 	case err := <-errchan:
