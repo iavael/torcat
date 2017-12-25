@@ -110,18 +110,12 @@ func main() {
 func runIO(conn io.ReadWriter) error {
 	errchan := make(chan error)
 	go func() {
-		if _, err := io.Copy(os.Stdout, conn); err != nil {
-			errchan <- err
-		} else {
-			errchan <- nil
-		}
+		_, err := io.Copy(os.Stdout, conn)
+		errchan <- err
 	}()
 	go func() {
-		if _, err := io.Copy(conn, os.Stdin); err != nil {
-			errchan <- err
-		} else {
-			errchan <- nil
-		}
+		_, err := io.Copy(conn, os.Stdin)
+		errchan <- err
 	}()
 
 	select {
