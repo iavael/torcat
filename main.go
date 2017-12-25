@@ -13,22 +13,30 @@ import (
 	"github.com/yawning/bulb/utils"
 )
 
+const (
+	flagDescControl = "Control socket (unix/tcp)"
+	flagDescListen  = "Listen port"
+	flagDescVerbose = "Verbose output"
+)
+
 var (
-	control string
-	listen  uint
+	control = flag.String("control", "9051", flagDescControl)
+	listen  = flag.Uint("listen", 0, flagDescListen)
+	verbose = flag.Bool("verbose", false, flagDescVerbose)
 
 	torctl *bulb.Conn
 )
 
 func init() {
-	flag.StringVar(&control, "control", "9051", "Control socket/port")
-	flag.UintVar(&listen, "l", 0, "Listen port")
+	flag.StringVar(control, "c", "9051", flagDescControl)
+	flag.UintVar(listen, "l", 0, flagDescListen)
+	flag.BoolVar(verbose, "v", false, flagDescVerbose)
 
 	flag.Parse()
 }
 
 func main() {
-	if cproto, caddr, err := utils.ParseControlPortString(control); err != nil {
+	if cproto, caddr, err := utils.ParseControlPortString(*control); err != nil {
 		log.Fatalf("Failed to parse control socket: %s", err)
 	} else if torctl, err = bulb.Dial(cproto, caddr); err != nil {
 		log.Fatalf("Failed to connect to control socket: %s", err)
@@ -40,27 +48,31 @@ func main() {
 		log.Fatalf("Authentication failed: %s", err)
 	}
 
-	if listen > 65535 {
-		log.Fatalf("Listen port %d is greater than 65535", listen)
-	} else if listen != 0 {
+	if *listen > 65535 {
+		log.Fatalf("Listen port %d is greater than 65535", *listen)
+	} else if *listen != 0 {
 		cfg := &bulb.NewOnionConfig{
 			DiscardPK: true,
 		}
-		if l, err := torctl.NewListener(cfg, uint16(listen)); err != nil {
+		if l, err := torctl.NewListener(cfg, uint16(*listen)); err != nil {
 			log.Fatalf("Failed to listen port: %s", err)
 		} else {
 			defer l.Close()
 			addrVec := strings.SplitN(l.Addr().String(), ":", 2)
 			os.Stderr.WriteString(addrVec[0])
 			os.Stderr.WriteString("\n")
-			os.Stderr.WriteString("[Waiting]")
-			os.Stderr.WriteString("\n")
+			if *verbose {
+				os.Stderr.WriteString("[Waiting]")
+				os.Stderr.WriteString("\n")
+			}
 			if conn, err := l.Accept(); err != nil {
 				log.Fatalf("Failed to accept connection: %s", err)
 			} else {
 				defer conn.Close()
-				os.Stderr.WriteString("[Connected]")
-				os.Stderr.WriteString("\n")
+				if *verbose {
+					os.Stderr.WriteString("[Connected]")
+					os.Stderr.WriteString("\n")
+				}
 				if err := runIO(conn); err != nil {
 					log.Fatalf("Failed conversation: %s", err)
 				}
@@ -84,8 +96,10 @@ func main() {
 			log.Fatalf("Connection to %s failed", err)
 		} else {
 			defer conn.Close()
-			os.Stderr.WriteString("[Connected]")
-			os.Stderr.WriteString("\n")
+			if *verbose {
+				os.Stderr.WriteString("[Connected]")
+				os.Stderr.WriteString("\n")
+			}
 			if err := runIO(conn); err != nil {
 				log.Fatalf("Failed conversation: %s", err)
 			}
