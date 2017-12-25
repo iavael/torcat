@@ -1,18 +1,16 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/yawning/bulb"
 	"github.com/yawning/bulb/utils"
-	"github.com/yawning/bulb/utils/pkcs1"
 )
 
 var (
@@ -45,28 +43,26 @@ func main() {
 	if listen > 65535 {
 		log.Fatalf("Listen port %d is greater than 65535", listen)
 	} else if listen != 0 {
-		if pk, err := rsa.GenerateKey(rand.Reader, 1024); err != nil {
-			log.Fatalf("Failed to generate RSA key")
-		} else if id, err := pkcs1.OnionAddr(&pk.PublicKey); err != nil {
-			log.Fatalf("Failed to derive onion ID: %s", err)
+		cfg := &bulb.NewOnionConfig{
+			DiscardPK: true,
+		}
+		if l, err := torctl.NewListener(cfg, uint16(listen)); err != nil {
+			log.Fatalf("Failed to listen port: %s", err)
 		} else {
-			os.Stderr.WriteString(id)
-			os.Stderr.WriteString(".onion\n")
-			cfg := &bulb.NewOnionConfig{
-				DiscardPK:  true,
-				PrivateKey: pk,
-			}
-			if l, err := torctl.NewListener(cfg, uint16(listen)); err != nil {
-				log.Fatalf("Failed to listen port: %s", err)
+			defer l.Close()
+			addrVec := strings.SplitN(l.Addr().String(), ":", 2)
+			os.Stderr.WriteString(addrVec[0])
+			os.Stderr.WriteString("\n")
+			os.Stderr.WriteString("[Waiting]")
+			os.Stderr.WriteString("\n")
+			if conn, err := l.Accept(); err != nil {
+				log.Fatalf("Failed to accept connection: %s", err)
 			} else {
-				defer l.Close()
-				if conn, err := l.Accept(); err != nil {
-					log.Fatalf("Failed to accept connection: %s", err)
-				} else {
-					defer conn.Close()
-					if err := runIO(conn); err != nil {
-						log.Fatalf("Failed conversation: %s", err)
-					}
+				defer conn.Close()
+				os.Stderr.WriteString("[Connected]")
+				os.Stderr.WriteString("\n")
+				if err := runIO(conn); err != nil {
+					log.Fatalf("Failed conversation: %s", err)
 				}
 			}
 		}
@@ -88,6 +84,8 @@ func main() {
 			log.Fatalf("Connection to %s failed", err)
 		} else {
 			defer conn.Close()
+			os.Stderr.WriteString("[Connected]")
+			os.Stderr.WriteString("\n")
 			if err := runIO(conn); err != nil {
 				log.Fatalf("Failed conversation: %s", err)
 			}
