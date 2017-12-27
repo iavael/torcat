@@ -29,3 +29,7 @@ $ torcat -v iwwcfmu5ncqwnncw.onion 9999
 (stdin)  Hello world!
 ^C
 ```
+
+Notes
+-----
+* Set cookie in environment variable TORCAT_COOKIE if tor daemon requires authentication
