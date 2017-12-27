@@ -25,6 +25,9 @@ var (
 	verbose = flag.Bool("verbose", false, flagDescVerbose)
 
 	torctl *bulb.Conn
+	torcfg = &bulb.NewOnionConfig{
+		DiscardPK: true,
+	}
 )
 
 func init() {
@@ -51,10 +54,7 @@ func main() {
 	if *listen > 65535 {
 		log.Fatalf("Listen port %d is greater than 65535", *listen)
 	} else if *listen != 0 {
-		cfg := &bulb.NewOnionConfig{
-			DiscardPK: true,
-		}
-		if l, err := torctl.NewListener(cfg, uint16(*listen)); err != nil {
+		if l, err := torctl.NewListener(torcfg, uint16(*listen)); err != nil {
 			log.Fatalf("Failed to listen port: %s", err)
 		} else {
 			defer l.Close()
