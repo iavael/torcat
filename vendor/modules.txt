@@ -1,0 +1,7 @@
+# github.com/yawning/bulb v0.0.0-20170405033506-85d80d893c3d
+github.com/yawning/bulb
+github.com/yawning/bulb/utils
+github.com/yawning/bulb/utils/pkcs1
+# golang.org/x/net v0.0.0-20190110200230-915654e7eabc
+golang.org/x/net/proxy
+golang.org/x/net/internal/socks
