@@ -117,6 +117,5 @@ func runIO(conn io.ReadWriter) error {
 	go ioCopy(errchan, os.Stdout, conn)
 	go ioCopy(errchan, conn, os.Stdin)
 
-	err := <-errchan:
-	return err
+	return <-errchan
 }
